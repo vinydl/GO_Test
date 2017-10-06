@@ -63,12 +63,27 @@ func savehandler(w http.ResponseWriter, r *http.Request) {
 }
 func retrievehandler(w http.ResponseWriter, r *http.Request) {
 
-	//	ctx := context.Background()
-	//var task Task
-	//task.Description = "Datastore input"
+	ctx := context.Background()
+	var task Task
 	// Set your Google Cloud Platform project ID.
-	//	projectID := "bipp-adhoc"
+	projectID := "bipp-adhoc"
 
 	// Creates a client.
+	client, err := datastore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	taskKey := client.NewKey(ctx, "Entity", "stringID", 0, nil)
+
+	q := datastore.NewQuery("input")
+	taskKey, err = client.Get(ctx, q, &task)
+
+	//kind := "input"
+	// Sets the name/ID for the new entity.
+	//name := input
+	// Creates a Key instance.
+	//taskKey := datastore..NewKey(tx, "kind", "stringID", 0, nil)
+
+	fmt.Printf(task[taskKey].Key)
 
 }
