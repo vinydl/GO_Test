@@ -15,6 +15,21 @@ type Task struct {
 
 func main() {
 
+	http.HandleFunc("/", handler)
+	http.HandleFunc("/save", savehandler)
+	http.HandleFunc("/retrieve", retrievehandler)
+	http.ListenAndServe(":8080", nil)
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+
+	//fmt.Fprint("Saved %v\n", taskKey)
+	fmt.Fprint(w, "Hello  world!")
+}
+
+func savehandler(w http.ResponseWriter, r *http.Request) {
+
+	input := r.URL.Query().Get("input")
 	ctx := context.Background()
 
 	// Set your Google Cloud Platform project ID.
@@ -25,16 +40,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
+
+	fmt.Fprint(w, input)
 	// Sets the kind for the new entity.
 	kind := "input"
 	// Sets the name/ID for the new entity.
-	name := "abc"
+	name := input
 	// Creates a Key instance.
 	taskKey := datastore.NameKey(kind, name, nil)
 
 	// Creates a Task instance.
 	task := Task{
-		Description: "Saving input",
+		Description: "Datastore input",
 	}
 
 	// Saves the new entity.
@@ -43,12 +60,15 @@ func main() {
 	}
 	fmt.Printf("Saved %v: %v\n", taskKey, task.Description)
 
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
 }
+func retrievehandler(w http.ResponseWriter, r *http.Request) {
 
-func handler(w http.ResponseWriter, r *http.Request) {
+	//	ctx := context.Background()
+	//var task Task
+	//task.Description = "Datastore input"
+	// Set your Google Cloud Platform project ID.
+	//	projectID := "bipp-adhoc"
 
-	//fmt.Fprint("Saved %v\n", taskKey)
-	fmt.Fprint(w, "Hello  world!")
+	// Creates a client.
+
 }
