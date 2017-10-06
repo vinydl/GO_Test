@@ -13,6 +13,10 @@ type Task struct {
 	Description string
 }
 
+type Entity struct {
+	Value string
+}
+
 func main() {
 
 	http.HandleFunc("/", handler)
@@ -43,28 +47,17 @@ func savehandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, input)
 	// Sets the kind for the new entity.
-	kind := "input"
-	// Sets the name/ID for the new entity.
-	name := input
-	// Creates a Key instance.
-	taskKey := datastore.NameKey(kind, name, nil)
-
-	// Creates a Task instance.
-	task := Task{
-		Description: "Datastore input",
+	k := datastore.NameKey("Entity", "stringID", nil)
+	e := Entity{input}
+	if _, err := client.Put(ctx, k, &e); err != nil {
+		log.Fatalf("Failed to create client: %v", err)
 	}
-
-	// Saves the new entity.
-	if _, err := client.Put(ctx, taskKey, &task); err != nil {
-		log.Fatalf("Failed to save task: %v", err)
-	}
-	fmt.Printf("Saved %v: %v\n", taskKey, task.Description)
+	fmt.Printf("Saved %q\n", e.Value)
 
 }
 func retrievehandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
-	var task Task
 	// Set your Google Cloud Platform project ID.
 	projectID := "bipp-adhoc"
 
@@ -73,17 +66,12 @@ func retrievehandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	taskKey := client.NewKey(ctx, "Entity", "stringID", 0, nil)
-
-	q := datastore.NewQuery("input")
-	taskKey, err = client.Get(ctx, q, &task)
-
-	//kind := "input"
-	// Sets the name/ID for the new entity.
-	//name := input
-	// Creates a Key instance.
-	//taskKey := datastore..NewKey(tx, "kind", "stringID", 0, nil)
-
-	fmt.Printf(task[taskKey].Key)
-
+	k := datastore.NameKey("Entity", "stringID", nil)
+	e := new(Entity)
+	if err := client.Get(ctx, k, e); err != nil {
+		// Handle error.
+	}
+	//fmt.Printf()
+	fmt.Printf("Saved %v: \n", e.Value)
+	fmt.Fprint(w, e.Value)
 }
