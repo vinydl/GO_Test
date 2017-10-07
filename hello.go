@@ -17,6 +17,9 @@ type Entity struct {
 	Value string
 }
 
+// Sets the kind for the new entity.
+//var k1 = datastore.NameKey("Entity", "stringID", nil)
+
 func main() {
 
 	http.HandleFunc("/", handler)
@@ -46,11 +49,11 @@ func savehandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, input)
-	// Sets the kind for the new entity.
 	k := datastore.NameKey("Entity", "stringID", nil)
+	//	k := datastore.NewIncompleteKey(ctx, "Entity", nil)
 	e := Entity{input}
-	if _, err := client.Put(ctx, k, &e); err != nil {
-		log.Fatalf("Failed to create client: %v", err)
+	if _, err = client.Put(ctx, k, &e); err != nil {
+
 	}
 	fmt.Printf("Saved %q\n", e.Value)
 
@@ -66,12 +69,18 @@ func retrievehandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	k := datastore.NameKey("Entity", "stringID", nil)
-	e := new(Entity)
-	if err := client.Get(ctx, k, e); err != nil {
-		// Handle error.
-	}
+	k := datastore.NewQuery("__key__")
+	var e []*Entity
+	//	e := new(Entity)
+	keys, err := client.GetAll(ctx, k, &e)
 	//fmt.Printf()
-	fmt.Printf("Saved %v: \n", e.Value)
-	fmt.Fprint(w, e.Value)
+
+	for i, key := range keys {
+		fmt.Println(key)
+		fmt.Println(e[i])
+	}
+	//	for i := range e {
+	//	fmt.Printf("Saved %v: \n", e[i].Value)
+	//fmt.Fprint(w, e[i].Value)
+	//}
 }
