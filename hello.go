@@ -14,7 +14,7 @@ type Task struct {
 }
 
 type Entity struct {
-	Value string
+	Value []string
 }
 
 // Sets the kind for the new entity.
@@ -44,18 +44,31 @@ func savehandler(w http.ResponseWriter, r *http.Request) {
 
 	// Creates a client.
 	client, err := datastore.NewClient(ctx, projectID)
+	tx, err := client.NewTransaction(ctx)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 
 	fmt.Fprint(w, input)
-	k := datastore.NameKey("Entity", "stringID", nil)
-	//	k := datastore.NewIncompleteKey(ctx, "Entity", nil)
-	e := Entity{input}
-	if _, err = client.Put(ctx, k, &e); err != nil {
-
+	taskKey := datastore.NameKey("Entity", "stringID", nil)
+	var task Entity
+	if err := tx.Get(taskKey, &task); err != nil {
+		log.Fatalf("tx.Get: %v", err)
 	}
-	fmt.Printf("Saved %q\n", e.Value)
+	task.Value = append(task.Value, input)
+
+	if _, err := tx.Put(taskKey, &task); err != nil {
+		log.Fatalf("tx.Put: %v", err)
+	}
+	if _, err := tx.Commit(); err != nil {
+		log.Fatalf("tx.Commit: %v", err)
+	}
+	//	k := datastore.NewIncompleteKey(ctx, "Entity", nil)
+	//	e := Entity{input}
+	//	if _, err = client.Put(ctx, k, &e); err != nil {
+
+	//}
+	//fmt.Printf("Saved %q\n", e.Value)
 
 }
 func retrievehandler(w http.ResponseWriter, r *http.Request) {
@@ -69,8 +82,8 @@ func retrievehandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	k := datastore.NewQuery("__key__")
-	var e []*Entity
+	k := datastore.NewQuery("Entity")
+	var e []Entity
 	//	e := new(Entity)
 	keys, err := client.GetAll(ctx, k, &e)
 	//fmt.Printf()
@@ -78,6 +91,7 @@ func retrievehandler(w http.ResponseWriter, r *http.Request) {
 	for i, key := range keys {
 		fmt.Println(key)
 		fmt.Println(e[i])
+		fmt.Fprint(w, e[i].Value)
 	}
 	//	for i := range e {
 	//	fmt.Printf("Saved %v: \n", e[i].Value)
